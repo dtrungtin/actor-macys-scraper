@@ -97,6 +97,11 @@ Apify.main(async () => {
             await delay(1000);
             console.log(`Processing ${request.url}...`);
 
+            if (body.includes('Access Denied')) {
+                console.log(`Request ${request.url} failed by access denied.`);
+                return;
+            }
+
             if (request.userData.label === 'start') {
                 const productCountEle = $('#productCount');
                 if (!productCountEle || productCountEle.text() === '') {
@@ -180,7 +185,8 @@ Apify.main(async () => {
                 }
             } else if (request.userData.label === 'item') {
                 // <script type="text/javascript"> window.__INITIAL_STATE__ = {}; </script>
-                const json = JSON.parse($('script[id=productMktData]').next().text().replace('window.__INITIAL_STATE__ =', '').trim().slice(0, -1));
+                const jsonStr = $('script[id=productMktData]').next().text().replace('window.__INITIAL_STATE__ =', '').trim().slice(0, -1);
+                const json = JSON.parse(jsonStr);
                 console.log(json._PDP_BOOTSTRAP_DATA);
 
                 const obj = JSON.parse(json._PDP_BOOTSTRAP_DATA);
@@ -193,8 +199,6 @@ Apify.main(async () => {
                 $('.swatch-itm static').each((i,op) => {
                     sizes.push($(op).text().trim());
                 });
-
-                $('.swatch-itm static')
 
                 const pageResult = {
                     url: request.url,
